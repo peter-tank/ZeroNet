@@ -1,1 +1,1 @@
-import BitmessagePlugin
+from . import BitmessagePlugin

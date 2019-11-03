@@ -1,7 +1,7 @@
 from Plugin import PluginManager
 
-import BMIO
-from BMAPI import BMAPI
+from . import BMIO
+from .BMAPI import BMAPI
 
 @PluginManager.registerTo("UiWebsocket")
 class UiWebsocketPlugin(object):
@@ -11,11 +11,18 @@ class UiWebsocketPlugin(object):
         if type(to) is int:  # Encrypt using user's publickey
             to2 = self.user.getBitmessage(self.site.address, to)
         else:
-            to2 = to
-        BMAPI().check_connection()
-        ackData = BMIO.sendMessage(publickey, to2, "ZeroNet message", text)
+            to2 = str(to)
+        con = BMAPI().connstr()
+        if con is None:
+            ackData = {"error": 1, "result": "bitmessage RPC not ready."}
+        else:
+            con = BMAPI().check_connection()
+            if con is not None:
+                ackData = BMIO.sendMessage(publickey, to2, "ZeroNet-py3 message", text)
+            else:
+                ackData = {"error": 2, "result": "bitmessage RPC API test failed."}
+        self.log.debug("to2: " + to2 + repr(ackData))
         self.response(to, ackData)
-
 
 @PluginManager.registerTo("User")
 class UserPlugin(object):
@@ -29,7 +36,7 @@ class UserPlugin(object):
             index = param_index
 
         if "bitmessage_%s" % index not in site_data:
-            site_data["bitmessage_%s" % index] = "BM-2cVuNdpRNKaPmPCroMxrzS14RXbXZhxPrx"
+            site_data["bitmessage_%s" % index] = "BM-2cUp6bW7C1BhCHbCFCKJvSYdL6uPtqgDWY"
             self.log.debug("New bitmessage address generated for %s:%s" % (address, index))
         return site_data["bitmessage_%s" % index]
 

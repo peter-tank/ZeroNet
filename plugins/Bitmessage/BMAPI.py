@@ -1,9 +1,9 @@
 import json
 import threading
 import traceback
-import xmlrpclib
+import xmlrpc.client as xmlrpclib
 
-from Singleton import Singleton
+from .Singleton import Singleton
 from Config import config
 
 @Singleton
@@ -17,6 +17,9 @@ class BMAPI(object):
         if not (hasattr(self.thrdata, 'con') and self.thrdata.con is not None):
             self.connect()
         return self.thrdata.con
+
+    def connstr(self):
+        return 'http://' + config.bitmessage_host + ':' + config.bitmessage_port + '/'
 
     def connect(self):
         try:
